@@ -1,25 +1,84 @@
 defmodule Apicult.Parser do
+  @moduledoc """
+  Apicult definition parsing
+  """
+
+  @typedoc """
+  The type of a variable. For now everything is a `:string`
+  """
   @type type :: :string
-  @type api :: {:api, [header], [endpoint]}
-  @type header :: {:config, atom(), type, String.t()}
-  @type endpoint :: {:endpoint, String.t(), url, result}
-  @type url :: {:url, method, interpolated, [querystring], [http_header], body}
+
+  @typedoc """
+  A full parsed apicult definition
+  """
+  @type api :: {:api, prelude :: [config], endpoints :: [endpoint]}
+
+  @typedoc """
+  A config in the prelude, of the form `api_key` or `api_key=something`
+  """
+  @type config :: {:config, name :: atom(), type :: type, default :: String.t()}
+
+  @typedoc """
+  An endpoint
+  """
+  @type endpoint :: {:endpoint, name :: String.t(), url :: url, result :: Apicult.Result.result()}
+
+  @typedoc """
+  An url definition, including method, querystring, headers and body
+  """
+  @type url ::
+          {:url, method :: method, url :: interpolated, querystring :: [querystring],
+           headers :: [http_header], body :: body}
+
+  @typedoc """
+  An http method
+  """
   @type method :: :get | :post
+
+  @typedoc """
+  A string containing interpolated variable (eg `https://example.com/$api_key/something`)
+  """
   @type interpolated ::
           [{:string, String.t()} | {:var, atom()}]
-  @type querystring :: {String.t(), interpolated}
-  @type http_header :: {String.t(), interpolated}
-  @type body :: {bodytype, [bodycontent]} | nil
-  @type bodytype :: :form | :json
-  @type bodycontent :: {String.t(), interpolated}
-  @type result :: Apicult.Result.result()
 
-  def parse_file(file) do
-    File.stream!(file)
+  @typedoc """
+  A key-value pair in a querystring
+  """
+  @type querystring :: {String.t(), interpolated}
+
+  @typedoc """
+  A key-value pair in a http header
+  """
+  @type http_header :: {String.t(), interpolated}
+
+  @typedoc """
+  A http request body
+  """
+  @type body :: {type :: bodytype, content :: [bodycontent]} | nil
+
+  @typedoc """
+  A http body type
+  """
+  @type bodytype :: :form | :json
+
+  @typedoc """
+  A key-value pair in a http body
+  """
+  @type bodycontent :: {String.t(), interpolated}
+
+  @spec parse_file(binary) :: {:ok, api()}
+  @doc """
+  Parse a file as an api definition
+  """
+  def parse_file(filename) do
+    File.stream!(filename)
     |> parse()
   end
 
-  @spec parse(any) :: {:ok, api}
+  @doc """
+  Parse the input (an Enum of strings) as an api definition
+  """
+  @spec parse(Enum.t()) :: {:ok, api()}
   def parse(enum) do
     {raw_prelude, rest} =
       enum
@@ -32,7 +91,7 @@ defmodule Apicult.Parser do
          do: {:ok, {:api, prelude, endpoints}}
   end
 
-  @spec parse_prelude(Enumerable.t()) :: {:ok, [header]}
+  @spec parse_prelude(Enumerable.t()) :: {:ok, [config]}
   defp parse_prelude(enum) do
     {:ok,
      enum
@@ -67,7 +126,7 @@ defmodule Apicult.Parser do
   end
 
   @spec parse_url(String.t()) :: url
-  def parse_url(str) do
+  defp parse_url(str) do
     groups =
       str
       |> OptionParser.split()
@@ -99,7 +158,6 @@ defmodule Apicult.Parser do
         end
       ])
 
-    # ["http", url | options] = OptionParser.split(str)
     {:url, method, url, querystrings, headers, body}
   end
 

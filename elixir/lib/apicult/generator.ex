@@ -1,7 +1,17 @@
 defmodule Apicult.Generator do
   alias Apicult.Parser
 
-  @spec generate_api_bindings(Parser.api()) :: any()
+  @doc """
+  Generates the code corresponding to an api definition.
+
+  This includes one method per api endpoint, with the variables as arguments.
+
+  If there are configuration variables in the definition, then:
+  - A `Client` struct holding them is created ;
+  - A `client` function to create the struct is created. It takes keywords corresponding to the variable names, and uses the elixir config for the module as default ;
+  - The `Client` struct is added as a first argument for each other methods (defaults to calling `client()`).
+  """
+  @spec generate_api_bindings(Parser.api()) :: Macro.t()
   def generate_api_bindings({:api, headers, endpoints}) do
     client_keys =
       headers
