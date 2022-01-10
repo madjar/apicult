@@ -12,6 +12,7 @@ defmodule Apicult.MixProject do
       start_permanent: Mix.env() == :prod,
       description: "A nice api description language that allow for quick api integration",
       package: package(),
+      docs: docs(),
       deps: deps(),
       name: @name,
       source_url: @repo_url,
@@ -43,5 +44,9 @@ defmodule Apicult.MixProject do
       licenses: ["Anti-Capitalist Software License"],
       links: %{"GitHub" => @repo_url}
     ]
+  end
+
+  defp docs do
+    [main: "Apicult", source_url_pattern: "#{@repo_url}/blob/main/elixir/%{path}#L%{line}"]
   end
 end
