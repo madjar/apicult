@@ -1,16 +1,21 @@
 defmodule Apicult.MixProject do
   use Mix.Project
 
+  @name "Apicult"
+  @repo_url "https://github.com/madjar/apicult"
+
   def project do
     [
       app: :apicult,
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
+      description: "A nice api description language that allow for quick api integration",
+      package: package(),
       deps: deps(),
-      name: "Apicult",
-      source_url: "https://github.com/madjar/apicult",
-      homepage_url: "https://github.com/madjar/apicult"
+      name: @name,
+      source_url: @repo_url,
+      homepage_url: @repo_url
     ]
   end
 
@@ -30,6 +35,13 @@ defmodule Apicult.MixProject do
       {:finch, "~> 0.10"},
       {:jason, "~> 1.3"},
       {:ex_doc, "~> 0.26", only: :dev, runtime: false}
+    ]
+  end
+
+  defp package do
+    [
+      licenses: ["Anti-Capitalist Software License"],
+      links: %{"GitHub" => @repo_url}
     ]
   end
 end
