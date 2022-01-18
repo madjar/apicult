@@ -126,7 +126,7 @@ defmodule Apicult.Parser do
   end
 
   @spec parse_url(String.t()) :: url
-  defp parse_url(str) do
+  def parse_url(str) do
     groups =
       str
       |> OptionParser.split()
