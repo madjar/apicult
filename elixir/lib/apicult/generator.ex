@@ -96,9 +96,12 @@ defmodule Apicult.Generator do
       |> Enum.reject(&Enum.member?(client_keys, &1))
       |> Enum.map(&Macro.var(&1, nil))
 
-    client_pattern_match =
+    used_client_keys =
       client_keys
       |> Enum.filter(&Enum.member?(used_variable_names, &1))
+
+    client_pattern_match =
+      used_client_keys
       |> Enum.map(&{&1, Macro.var(&1, nil)})
 
     client_arg =
@@ -128,11 +131,21 @@ defmodule Apicult.Generator do
     # Spec
 
     client_spec =
-      if Enum.empty?(client_pattern_match) do
+      if Enum.empty?(used_client_keys) do
         []
       else
         quote do
-          [Client]
+          [
+            %Client{
+              unquote_splicing(
+                Enum.map(used_client_keys, fn key ->
+                  quote do
+                    {unquote(key), any()}
+                  end
+                end)
+              )
+            }
+          ]
         end
       end
 
