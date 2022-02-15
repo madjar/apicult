@@ -180,37 +180,25 @@ defmodule Apicult.Generator do
             unquote_splicing(endpoint_variables)
           ) do
         # TODO Allow documentation
-        request = unquote(generate_request(url))
-
-        {:ok, %Finch.Response{status: status} = response} =
-          request
-          |> Finch.request(Apicult.Finch)
-
-        cond do
-          status >= 400 ->
-            raise "Got error http status: #{inspect(response)}"
-
-          # handle redirect
-          status >= 300 ->
-            response.headers
-            |> List.keyfind!("location", 0)
-            |> elem(1)
-
-          true ->
-            attrs = Jason.decode!(response.body)
-
-            unquote(
-              if response_struct do
-                quote do
-                  unquote(response_struct).from_map(attrs)
-                end
-              else
-                quote do
-                  attrs
-                end
-              end
-            )
+        make_request = fn ->
+          unquote(generate_request(url))
         end
+
+        format_response = fn attrs ->
+          unquote(
+            if response_struct do
+              quote do
+                unquote(response_struct).from_map(attrs)
+              end
+            else
+              quote do
+                attrs
+              end
+            end
+          )
+        end
+
+        Apicult.Request.do_request(make_request, format_response)
       end
     end
   end
