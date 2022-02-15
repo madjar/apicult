@@ -198,7 +198,10 @@ defmodule Apicult.Generator do
           )
         end
 
-        Apicult.Request.do_request(make_request, format_response)
+        case Apicult.Request.do_request(make_request, format_response) do
+          {:ok, result} -> result
+          {:error, error} -> raise error
+        end
       end
     end
   end
