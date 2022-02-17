@@ -1,0 +1,5 @@
+# Basic request
+> http http://example.com/get
+expect
+GET /get HTTP/1.1
+Host: example.com

@@ -206,7 +206,7 @@ defmodule Apicult.Generator do
     end
   end
 
-  defp generate_request({:url, method, url, querystrings, headers, body}) do
+  def generate_request({:url, method, url, querystrings, headers, body}) do
     {body_headers, body_quote} =
       case body do
         nil ->
