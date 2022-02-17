@@ -1,0 +1,12 @@
+
+# Example get
+> http https://httpbin.org/get qs==$qs
+{
+    "args": {
+        "qs": "something"
+    },
+    ...
+}
+
+# Redirect
+> http https://httpbin.org/status/300
