@@ -76,7 +76,7 @@ defmodule Apicult.Generator do
   defp generate_endpoint(
          {:endpoint, name,
           {:url, _method, interpolated_url, interpolated_querystrings, interpolated_headers,
-           interpolated_body} = url, result},
+           interpolated_body} = url, result, _expectation},
          client_keys
        ) do
     function_name =

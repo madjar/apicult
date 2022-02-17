@@ -21,7 +21,14 @@ defmodule Apicult.Parser do
   @typedoc """
   An endpoint
   """
-  @type endpoint :: {:endpoint, name :: String.t(), url :: url, result :: Apicult.Result.result()}
+  @type endpoint ::
+          {:endpoint, name :: String.t(), url :: url, result :: Apicult.Result.result() | nil,
+           expectation :: expectation | nil}
+
+  @typedoc """
+  An expectation is a list on line that needs to appear in the resulting request. Used for testing an implementation of Apicult.
+  """
+  @type expectation :: [String.t()]
 
   @typedoc """
   An url definition, including method, querystring, headers and body
@@ -115,12 +122,19 @@ defmodule Apicult.Parser do
     {:ok,
      enum
      |> chunk_on(&new_endpoint/1)
-     |> Enum.map(fn ["# " <> name, "> " <> url | result] ->
+     |> Enum.map(fn ["# " <> name, "> " <> url | rest] ->
+       {result, expectation} =
+         case rest do
+           ["expect" | expectations] -> {nil, expectations}
+           _ -> {rest |> Enum.join("\n") |> Apicult.Result.parse(), nil}
+         end
+
        {
          :endpoint,
          name,
          parse_url(url),
-         result |> Enum.join("\n") |> Apicult.Result.parse()
+         result,
+         expectation
        }
      end)}
   end

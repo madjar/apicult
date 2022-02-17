@@ -28,12 +28,14 @@ defmodule Apicult.ParserTest do
                  :endpoint,
                  "Get game data",
                  _,
+                 nil,
                  nil
                },
                {
                  :endpoint,
                  "Get game",
                  _,
+                 nil,
                  nil
                }
              ]}} = result
