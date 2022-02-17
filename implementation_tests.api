@@ -1,5 +1,48 @@
+## This file contains example of apicurl endpoint definition, along with the resulting requests.
+## It can be used to test an implementation.
+
 # Basic request
 > http http://example.com/get
 expect
 GET /get HTTP/1.1
 Host: example.com
+
+## # Url with a variable
+## endpoint=get
+## > http http://example.com/$endpoint
+## expect
+## GET /get HTTP/1.1
+
+# Querystring
+> http http://example.com/get key==value
+expect
+GET /get?key=value HTTP/1.1
+
+# Space in quoted string
+> http http://example.com/get key=="value with space"
+expect
+GET /get?key=value+with+space HTTP/1.1
+
+# Headers
+> http http://example.com/get Authorization:pouet
+expect
+Authorization: pouet
+
+# explicit POST
+> http POST http://example.com/post 
+expect
+POST /post HTTP/1.1
+
+# Json body
+> http http://example.com/post key=value
+expect
+POST /post HTTP/1.1
+Content-type: application/json
+{"key": "value"}
+
+# Form body
+> http -f http://example.com/post key=value
+expect
+POST /post HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+key=value
