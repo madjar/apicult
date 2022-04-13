@@ -10,6 +10,7 @@ defmodule Apicult.MixProject do
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       description: "A nice api description language that allow for quick api integration",
       package: package(),
       docs: docs(),
@@ -19,6 +20,10 @@ defmodule Apicult.MixProject do
       homepage_url: @repo_url
     ]
   end
+
+  # Include tests in compilation, to avoid issue with protocol consolidation
+  defp elixirc_paths(:test), do: ["lib", "test"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help compile.app" to learn about applications.
   def application do
