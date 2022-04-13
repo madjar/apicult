@@ -21,7 +21,7 @@ defmodule ImplementationTest do
     full_path = Finch.Request.request_path(req)
 
     ["#{method} #{full_path} HTTP/1.1", "Host: #{host}"] ++
-      headers ++
+      for({k, v} <- headers, do: "#{k}: #{v}") ++
       String.split(body || "", "\n")
   end
 end

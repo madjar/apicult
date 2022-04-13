@@ -218,7 +218,7 @@ defmodule Apicult.Generator do
         {:json, body} ->
           {[{"Content-Type", "application/json"}],
            quote do
-             Jason.encode!(unquote(render_interpolated(body)))
+             Jason.encode!(Map.new(unquote(render_interpolated(body))))
            end}
 
         {:form, body} ->

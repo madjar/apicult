@@ -125,7 +125,7 @@ defmodule Apicult.Parser do
      |> Enum.map(fn ["# " <> name, "> " <> url | rest] ->
        {result, expectation} =
          case rest do
-           ["expect" | expectations] -> {nil, expectations}
+           ["expect" | expectations] -> {nil, expectations |> List.delete("")}
            _ -> {rest |> Enum.join("\n") |> Apicult.Result.parse(), nil}
          end
 

@@ -37,8 +37,8 @@ POST /post HTTP/1.1
 > http http://example.com/post key=value
 expect
 POST /post HTTP/1.1
-Content-type: application/json
-{"key": "value"}
+Content-Type: application/json
+{"key":"value"}
 
 # Form body
 > http -f http://example.com/post key=value
