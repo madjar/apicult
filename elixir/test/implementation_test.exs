@@ -3,8 +3,16 @@ defmodule ImplementationTest do
 
   {:ok, {:api, _, endpoints}} = Apicult.Parser.parse_file("../implementation_tests.api")
 
-  for {:endpoint, name, url, _result, expectation} <- endpoints do
+  for {:endpoint, name, variables, url, _result, expectation} <- endpoints do
+    variables_definition =
+      for {:config, name, _type, value} <- variables do
+        quote do
+          unquote(Macro.var(name, nil)) = unquote(value)
+        end
+      end
+
     test name do
+      unquote_splicing(variables_definition)
       request = unquote(Apicult.Generator.generate_request(url))
       request_lines = dump_request(request)
 

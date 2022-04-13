@@ -74,7 +74,7 @@ defmodule Apicult.Generator do
 
   @spec generate_endpoint(Apicult.Parser.endpoint(), [atom()]) :: Macro.t()
   defp generate_endpoint(
-         {:endpoint, name,
+         {:endpoint, name, variables,
           {:url, _method, interpolated_url, interpolated_querystrings, interpolated_headers,
            interpolated_body} = url, result, _expectation},
          client_keys
@@ -91,10 +91,25 @@ defmodule Apicult.Generator do
          extract_variables(interpolated_headers) ++ extract_variables(interpolated_body))
       |> Enum.dedup()
 
+    local_variables_default_arguments =
+      for {:config, name, :string, value} <- variables,
+          into: %{},
+          do: {name, value}
+
     endpoint_variables =
       used_variable_names
       |> Enum.reject(&Enum.member?(client_keys, &1))
-      |> Enum.map(&Macro.var(&1, nil))
+      |> Enum.map(fn variable_name ->
+        case Map.get(local_variables_default_arguments, variable_name) do
+          nil ->
+            Macro.var(variable_name, nil)
+
+          value ->
+            quote do
+              unquote(Macro.var(variable_name, nil)) \\ unquote(value)
+            end
+        end
+      end)
 
     used_client_keys =
       client_keys

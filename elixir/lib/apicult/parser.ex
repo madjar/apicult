@@ -22,8 +22,8 @@ defmodule Apicult.Parser do
   An endpoint
   """
   @type endpoint ::
-          {:endpoint, name :: String.t(), url :: url, result :: Apicult.Result.result() | nil,
-           expectation :: expectation | nil}
+          {:endpoint, name :: String.t(), variables :: [config], url :: url,
+           result :: Apicult.Result.result() | nil, expectation :: expectation | nil}
 
   @typedoc """
   An expectation is a list on line that needs to appear in the resulting request. Used for testing an implementation of Apicult.
@@ -122,21 +122,33 @@ defmodule Apicult.Parser do
     {:ok,
      enum
      |> chunk_on(&new_endpoint/1)
-     |> Enum.map(fn ["# " <> name, "> " <> url | rest] ->
-       {result, expectation} =
-         case rest do
-           ["expect" | expectations] -> {nil, expectations |> List.delete("")}
-           _ -> {rest |> Enum.join("\n") |> Apicult.Result.parse(), nil}
-         end
+     |> Enum.map(&parse_endpoint/1)}
+  end
 
-       {
-         :endpoint,
-         name,
-         parse_url(url),
-         result,
-         expectation
-       }
-     end)}
+  defp parse_endpoint(endpoint_lines) do
+    ["# " <> name | endpoint_lines] = endpoint_lines
+
+    {raw_variables, endpoint_lines} =
+      Enum.split_while(endpoint_lines, &(!String.starts_with?(&1, "> ")))
+
+    {:ok, variables} = parse_prelude(raw_variables)
+
+    ["> " <> url | rest] = endpoint_lines
+
+    {result, expectation} =
+      case rest do
+        ["expect" | expectations] -> {nil, expectations |> List.delete("")}
+        _ -> {rest |> Enum.join("\n") |> Apicult.Result.parse(), nil}
+      end
+
+    {
+      :endpoint,
+      name,
+      variables,
+      parse_url(url),
+      result,
+      expectation
+    }
   end
 
   @spec parse_url(String.t()) :: url

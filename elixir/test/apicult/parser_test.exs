@@ -27,6 +27,7 @@ defmodule Apicult.ParserTest do
                {
                  :endpoint,
                  "Get game data",
+                 [],
                  _,
                  nil,
                  nil
@@ -34,6 +35,7 @@ defmodule Apicult.ParserTest do
                {
                  :endpoint,
                  "Get game",
+                 [],
                  _,
                  nil,
                  nil

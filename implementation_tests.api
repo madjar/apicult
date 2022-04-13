@@ -7,11 +7,11 @@ expect
 GET /get HTTP/1.1
 Host: example.com
 
-## # Url with a variable
-## endpoint=get
-## > http http://example.com/$endpoint
-## expect
-## GET /get HTTP/1.1
+# Url with a variable
+endpoint=get
+> http http://example.com/$endpoint
+expect
+GET /get HTTP/1.1
 
 # Querystring
 > http http://example.com/get key==value

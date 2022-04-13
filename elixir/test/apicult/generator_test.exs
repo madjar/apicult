@@ -24,6 +24,31 @@ defmodule Apicult.GeneratorTest do
              )
   end
 
+  test "Generates a function with default arguments for variables" do
+    {:ok, parsed} =
+      """
+      # Call the thing
+      api_key=pouet
+      > http http://example.com/$api_key
+      """
+      |> String.split("\n")
+      |> Apicult.Parser.parse()
+
+    generated = Apicult.Generator.generate_api_bindings(parsed)
+
+    {:call_the_thing, _context, args} =
+      find_in_ast(generated, :call_the_thing)
+      # We take the second, because the first one is the typespec
+      |> Enum.at(1)
+
+    assert Macro.to_string(args) ==
+             Macro.to_string(
+               quote do
+                 [api_key \\ "pouet"]
+               end
+             )
+  end
+
   def find_in_ast({node, _, _} = ast, node), do: [ast]
   def find_in_ast({_, _, args}, node), do: find_in_ast(args, node)
   def find_in_ast(l, node) when is_list(l), do: Enum.flat_map(l, &find_in_ast(&1, node))
