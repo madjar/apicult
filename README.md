@@ -25,6 +25,7 @@ Once you have an apicult description, you immediatly get an API wrapper in the f
 An api description file contains a list of endpoints of the form
 ```
 # [[Endpoint name]]
+[[Optional default values for variables]]
 > [[Http call]]
 [[Optionally, result]]
 ```
@@ -48,6 +49,15 @@ This is an example of every feature, we have:
 - The http headers, of the form `key:value`.
 - All of these can use `"`, in case you have spaces.
 - All of these can contain variables of the form `$variable_name`. They will be translated to function arguments.
+
+### Default values for variables
+
+If the endpoint has variables, it's possible to provide a default value for them, using the following syntax:
+```
+# An endpoint with pagination
+page=1
+> http https://example.com/api/get_things page==$page
+```
 
 ### Result
 
