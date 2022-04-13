@@ -10,3 +10,21 @@
 
 # Redirect
 > http https://httpbin.org/status/300
+
+# post json
+> http https://httpbin.org/post key=$json
+{
+    "json": {
+        "key": "something"
+    },
+    ...
+}
+
+# post form
+> http -f https://httpbin.org/post key=$json
+{
+    "form": {
+        "key": "something"
+    },
+    ...
+}
