@@ -94,3 +94,19 @@ If the result definition contains "...", then these struct have a `rest` field, 
 If there are some global config values, a `Client` struct that holds the config. It is passed as first argument to all functions, though you can skip it if all config fields have default values.
 
 You can set default values for `Client` in the specification, or in the corresponding elixir config, eg `config Itch, api_key: System.get_env "ITCH_KEY"`
+
+## Implementation tests
+
+There's a hidden piece of syntax in the apicult format to make the work of implementors easier: the result may instead start with the `expect` keyword to define an expectation. For example:
+
+```
+# Basic request
+> http http://example.com/get
+expect
+GET /get HTTP/1.1
+Host: example.com
+```
+
+The expectations contains lines that are expected to be in the request generated for this endpoint. The [implementation_tests.api](./implementation_tests.api) file contains such expectations for all apicult features. This means that once you have written your parser, and your code that generates http requests (which you very likely need to make http requests), then you get tests for all language features for free!
+
+You might need to write code to convert an http request into its representation, but that should be straightforwared. You can use [the elixir code for these tests](./elixir/test/implementation_test.exs) as an example.
