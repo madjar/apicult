@@ -18,7 +18,7 @@ module Apicult.Parse
   )
 where
 
-import Data.Char (isSpace)
+import Data.Char (isAlphaNum)
 import qualified Data.Text as T
 import Relude.Extra (groupBy, lookup)
 import Text.Megaparsec
@@ -136,8 +136,8 @@ requestP =
     void $ lexeme $ string ">"
     void $ optional $ lexeme $ string "http"
     formBody <- optional $ lexeme (Form <$ "-f")
-    explicitMethod <- optional methodP
-    url <- badMakeInterpolated <$> lexeme (takeWhile1P Nothing (not . isSpace))
+    explicitMethod <- optional $ lexeme methodP
+    url <- interpolated
     let optionP =
           lexeme $ do
             key <- T.pack <$> some (alphaNumChar <|> char '_')
@@ -171,16 +171,19 @@ resultP = expectation <|> return NoResult
       rest <- manyTill printChar newlines
       return (T.pack (firstChar : rest))
 
--- TODO handle interpolated
 interpolated :: Parser Interpolated
 interpolated =
-  badMakeInterpolated
-    <$> ( between "\"" "\"" (takeWhile1P (Just "non-quote character") (/= '"'))
-            <|> takeWhile1P (Just "non-space character") (not . isSpace)
-        )
-
-badMakeInterpolated :: Text -> Interpolated
-badMakeInterpolated = Interpolated . pure . Literal
+  lexeme $
+    Interpolated
+      <$> ( between "\"" "\"" partsWithQuotes
+              <|> partsWithoutQuotes
+          )
+  where
+    partsWithQuotes, partsWithoutQuotes :: Parser [InterpolatedPart]
+    partsWithQuotes = some (var <|> Literal <$> takeWhile1P (Just "non-(quote,dollar,newline))") (\c -> c /= '"' && c /= '$' && c /= '\n'))
+    partsWithoutQuotes = some (var <|> Literal <$> takeWhile1P (Just "non-(space-dollar,newline)") (\c -> c /= ' ' && c /= '$' && c /= '\n'))
+    var :: Parser InterpolatedPart
+    var = Var <$> (char '$' *> takeWhile1P (Just "alphanum or underscore") (\c -> isAlphaNum c || c == '_'))
 
 newlines :: Parser ()
 newlines = void $ some newline
