@@ -95,6 +95,7 @@ data InterpolatedPart
 apiParser :: Parser Api
 apiParser = do
   spaceConsumer
+  void $ many newline
   globals <- many variable
   endpoints <- many endpoint
   eof
@@ -159,7 +160,7 @@ methodP :: Parser Method
 methodP = lexeme (Get <$ string "GET" <|> Post <$ string "POST")
 
 resultP :: Parser Result
-resultP = expectation <|> return NoResult
+resultP = expectation <|> jsonResult <|> return NoResult
   where
     expectation =
       Expectation <$> do
@@ -170,6 +171,7 @@ resultP = expectation <|> return NoResult
       firstChar <- anySingleBut '#'
       rest <- manyTill printChar newlines
       return (T.pack (firstChar : rest))
+    jsonResult = NoResult <$ (char '{' *> manyTill anySingle "\n}" *> many newline)
 
 interpolated :: Parser Interpolated
 interpolated =
