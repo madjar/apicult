@@ -1,0 +1,22 @@
+# Guide for the implementor
+
+## Write a parser
+
+First, you need to write a parser for the apicult description language. For now, the best description of the language can be found in the [README](./README.md).
+
+If you want fast feedback, you can parse `implementation_tests.api`, which contains most options of the language.
+
+At this stage, I recommend leaving the json result aside, so you have an MVP earlier.
+
+## Generate requests
+
+Once you have parsed the description of the api, you can generate requests from it. There are two options here:
+
+- Generate requests dynamically at runtime, from an endpoint definition and a map of variables. This is required if you want your program to work with api descriptions that are not known at runtime, or work in a language that doesn't allow you to do fancy things at compile-time. The additional complexity here is that you'll have to handle variables as a map, and their the resolution of string interpolation manually.
+- Use macros or code generation to create code that generates the requests. This is required if you want to generate an api wrapper that can be used like it was hand-written (with variables being function parameters, and nice docs).
+
+Once you have implemented one of the two, you can write tests to check that the generated requests match the expectations in `implementation_tests.api`.
+
+## Tie it all together
+
+## Nice result types

@@ -1,0 +1,76 @@
+cabal-version:   3.0
+name:            apicult
+version:         0.0.0.0
+synopsis:        See README for more info
+description:
+  See README for more info.
+  See README.md for more details.
+
+license-file:    LICENSE
+author:          Georges Dubus
+maintainer:      Georges Dubus <georges.dubus@hey.com>
+copyright:       2022 Georges Dubus
+build-type:      Simple
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+tested-with:     GHC ==8.10.7 || ==9.0.2 || ==9.2.2
+
+common common-options
+  build-depends:
+    , base        >=4.14.3.0 && <4.17
+    , megaparsec  ^>=9.2
+    , relude      ^>=1.0
+
+  mixins:
+    base hiding (Prelude),
+    relude (Relude as Prelude),
+    relude
+
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -Wnoncanonical-monad-instances
+
+  if impl(ghc >=8.2)
+    ghc-options: -fhide-source-paths
+
+  if impl(ghc >=8.4)
+    ghc-options: -Wmissing-export-lists -Wpartial-fields
+
+  if impl(ghc >=8.8)
+    ghc-options: -Wmissing-deriving-strategies -fwrite-ide-info -hiedir=.hie
+
+  if impl(ghc >=8.10)
+    ghc-options: -Wunused-packages
+
+  default-language:   Haskell2010
+  default-extensions: OverloadedStrings
+
+library
+  import:          common-options
+  hs-source-dirs:  src
+  exposed-modules:
+    Apicult
+    Apicult.Parse
+
+executable apicult
+  import:         common-options
+  hs-source-dirs: app
+  main-is:        Main.hs
+  build-depends:  apicult
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+
+test-suite apicult-test
+  import:         common-options
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        Spec.hs
+  other-modules:  Test.Implementation
+  build-depends:
+    , apicult
+    , hspec             >=2.9.6
+    , hspec-megaparsec
+
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
