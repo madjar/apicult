@@ -2,12 +2,34 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Apicult.Parse (tagada) where
+module Apicult.Parse
+  ( Api (..),
+    Variable (..),
+    Endpoint (..),
+    Result (..),
+    Request (..),
+    Method (..),
+    Body (..),
+    BodyType (..),
+    Pair (..),
+    Interpolated (..),
+    InterpolatedPart (..),
+    apiParser,
+  )
+where
 
 import Data.Char (isSpace)
 import qualified Data.Text as T
 import Relude.Extra (groupBy, lookup)
 import Text.Megaparsec
+  ( MonadParsec (eof, takeWhile1P, try),
+    Parsec,
+    anySingleBut,
+    between,
+    many,
+    manyTill,
+    some,
+  )
 import Text.Megaparsec.Char (alphaNumChar, char, letterChar, newline, printChar, string)
 import qualified Text.Megaparsec.Char.Lexer as L
 import Prelude hiding (many, some)
@@ -50,7 +72,11 @@ data Method
   | Post
   deriving stock (Show)
 
-data Body = Body {bodyType :: BodyType, content :: [Pair]} deriving stock (Show)
+data Body = Body
+  { bodyType :: BodyType,
+    content :: [Pair]
+  }
+  deriving stock (Show)
 
 data BodyType
   = Form
@@ -65,11 +91,6 @@ data InterpolatedPart
   = Literal Text
   | Var Text
   deriving stock (Show)
-
-tagada :: IO ()
-tagada = do
-  implementationTests <- readFileText "../implementation_tests.api"
-  parseTest apiParser implementationTests
 
 apiParser :: Parser Api
 apiParser = do
@@ -127,7 +148,7 @@ requestP =
     let opt symbol = maybe [] toList $ lookup symbol options
         querystring = opt "=="
         headers = opt ":"
-        bodyParts = opt "=="
+        bodyParts = opt "="
     newlines
     let method = fromMaybe (if null bodyParts then Get else Post) explicitMethod
         bodyType = fromMaybe Json formBody

@@ -15,7 +15,9 @@ Once you have parsed the description of the api, you can generate requests from 
 - Generate requests dynamically at runtime, from an endpoint definition and a map of variables. This is required if you want your program to work with api descriptions that are not known at runtime, or work in a language that doesn't allow you to do fancy things at compile-time. The additional complexity here is that you'll have to handle variables as a map, and their the resolution of string interpolation manually.
 - Use macros or code generation to create code that generates the requests. This is required if you want to generate an api wrapper that can be used like it was hand-written (with variables being function parameters, and nice docs).
 
-Once you have implemented one of the two, you can write tests to check that the generated requests match the expectations in `implementation_tests.api`.
+Once you have implemented one of the two, you can write tests to check that the generated requests match the expectations in `implementation_tests.api`. Since every http library has it's own tiny differences (specific headers, encoding, ordering), it's okay to touch up the expectation before comparing.
+
+Optionally, you can implement the dynamic generation, then the macro in term of the dynamic generation, if you want to work on the logic before diving into macros. You can then refactor things to move as much things as you want to compile time.
 
 ## Tie it all together
 
