@@ -16,7 +16,7 @@ makeApi :: FilePath -> Q [Dec]
 makeApi definitionFile = do
   -- TODO use globals
   Api {globals = _, endpoints} <- liftIO $ parseApi definitionFile
-  flip foldMap endpoints $ \e@Endpoint {name, variables = _, request, result = _} -> do
+  foldFor endpoints $ \e@Endpoint {name, variables = _, request, result = _} -> do
     args <- executingStateT [] (makeRequest request (\key -> modify (key :) >> return ""))
 
     let functionName = varName . varCamelcaseName . toString $ name
@@ -42,6 +42,10 @@ makeApi definitionFile = do
             []
         ]
     return [signature, function]
+
+-- | This is `flip foldMap`, except template-haskell doesn't have `Monoid Q` in ghc 8.10
+foldFor :: [a] -> (a -> Q [Dec]) -> Q [Dec]
+foldFor l f = concat <$> forM l f
 
 functionType :: [Q Type] -> Q Type -> Q Type
 functionType args ret = do

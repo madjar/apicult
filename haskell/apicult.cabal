@@ -15,7 +15,10 @@ extra-doc-files:
   CHANGELOG.md
   README.md
 
-tested-with:     GHC ==8.10.7 || ==9.0.2 || ==9.2.2
+tested-with:     GHC ==8.10.7 || ==9.0.2
+
+-- Waiting on relude for ghc=9.2 support (there's a release in the pipes)
+-- || ==9.2.2
 
 common common-options
   build-depends:
@@ -26,8 +29,8 @@ common common-options
     , http-conduit      ^>=2.3
     , megaparsec        ^>=9.2
     , names-th          ^>=0.3
-    , relude            ^>=1.0
-    , template-haskell  ^>=2.17
+    , relude            >=1.0      && <1.2
+    , template-haskell  >=2.16     && <2.18
 
   mixins:
     base hiding (Prelude),
