@@ -1,7 +1,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Apicult.Request (makeRequestForEndpoint) where
+module Apicult.Request (makeRequestForEndpoint, makeRequest) where
 
 import Apicult.Parse
 import Control.Exception (ErrorCall (ErrorCall))
@@ -12,14 +12,22 @@ import qualified Data.CaseInsensitive as CI
 import qualified Network.HTTP.Simple as H
 import Relude.Extra (lookup)
 
-makeRequestForEndpoint :: MonadThrow m => Endpoint -> m H.Request
-makeRequestForEndpoint Endpoint {variables, request = request} =
-  makeRequest request defaultArgs
+-- | Create a request from an endpoint definition, use for dynamic clients
+makeRequestForEndpoint :: MonadThrow m => Endpoint -> Map Text Text -> m H.Request
+makeRequestForEndpoint Endpoint {variables, request = request} args =
+  makeRequest request lookupArgs
   where
     defaultArgs = fromList . map (\Variable {name, defaultValue} -> (name, defaultValue)) $ variables
+    fullArgs = args <> defaultArgs
+    lookupArgs v =
+      maybe
+        (throwM (ErrorCall ("Missing argument: " <> toString v)))
+        return
+        (lookup v fullArgs)
 
-makeRequest :: MonadThrow m => Request -> Map Text Text -> m H.Request
-makeRequest Request {method, url, querystring, headers, body = Body {bodyType, content}} args = do
+-- | Make a request from the request definition. Takes function that maps variables to their values (this can be used to get a list of variables).
+makeRequest :: MonadThrow m => Request -> (Text -> m Text) -> m H.Request
+makeRequest Request {method, url, querystring, headers, body = Body {bodyType, content}} lookupArgs = do
   rUrl <- render url
   rQueryString <- renderQS <$> renderPairs querystring
   rHeaders <- renderHeaders <$> renderPairs headers
@@ -41,7 +49,7 @@ makeRequest Request {method, url, querystring, headers, body = Body {bodyType, c
               rv <- render v
               return (k, rv)
         )
-    render = renderInterpolated args
+    render = renderInterpolated lookupArgs
     renderMethod Get = "GET"
     renderMethod Post = "POST"
     renderQS = map (bimap encodeUtf8 (Just . encodeUtf8))
@@ -54,12 +62,9 @@ makeRequest Request {method, url, querystring, headers, body = Body {bodyType, c
           Json -> H.setRequestBodyJSON (Aeson.object . map (bimap Aeson.fromText Aeson.toJSON) $ rBody)
         else id
 
-renderInterpolated :: MonadThrow m => Map Text Text -> Interpolated -> m Text
-renderInterpolated args (Interpolated parts) = fold <$> traverse render parts
+-- NOTE: if I wanted to be fancy, I could have the rendering code also serve to collect the name of variables, through some fancy Applicative
+renderInterpolated :: Applicative m => (Text -> m Text) -> Interpolated -> m Text
+renderInterpolated lookupArgs (Interpolated parts) = fold <$> traverse render parts
   where
-    render (Literal l) = return l
-    render (Var v) =
-      maybe
-        (throwM (ErrorCall ("Missing argument: " <> toString v)))
-        return
-        (lookup v args)
+    render (Literal l) = pure l
+    render (Var v) = lookupArgs v

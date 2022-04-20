@@ -3,7 +3,7 @@
 
 module Test.Implementation (implementationSpec) where
 
-import Apicult.Parse (Api (endpoints), Endpoint (..), Result (Expectation), apiParser)
+import Apicult.Parse (Api (endpoints), Endpoint (..), Result (Expectation), apiParser, parseApi)
 import Apicult.Request (makeRequestForEndpoint)
 import Data.Text (replace, strip)
 import Network.HTTP.Client.Internal
@@ -25,16 +25,12 @@ implementationSpec = describe "implementation_tests.api" $ do
     parse apiParser "" `shouldSucceedOn` implementationTests
 
   describe "implementation tests" $ do
-    f <- runIO $ readFileText "../implementation_tests.api"
-    let implementationTests =
-          case parse apiParser "../implementation_tests.api" f of
-            Right r -> r
-            Left e -> error (toText $ errorBundlePretty e)
+    implementationTests <- runIO $ parseApi "../implementation_tests.api"
 
     forM_ (endpoints implementationTests) $ \e@(Endpoint {name, result, request = requestDefinition}) -> do
       case result of
         Expectation expectations -> it (toString name) $ do
-          request <- makeRequestForEndpoint e
+          request <- makeRequestForEndpoint e mempty
           mockManager <- newMockManager
 
           _ <- httpNoBody request (manager mockManager)

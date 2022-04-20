@@ -6,7 +6,7 @@ First, you need to write a parser for the apicult description language. For now,
 
 If you want fast feedback, you can parse `implementation_tests.api`, which contains most options of the language.
 
-At this stage, I recommend leaving the json result aside, so you have an MVP earlier.
+At this stage, I recommend ignoring the json result when parsing, so you have an MVP earlier.
 
 ## Generate requests
 
@@ -20,5 +20,7 @@ Once you have implemented one of the two, you can write tests to check that the 
 Optionally, you can implement the dynamic generation, then the macro in term of the dynamic generation, if you want to work on the logic before diving into macros. You can then refactor things to move as much things as you want to compile time.
 
 ## Tie it all together
+
+Write some code generation that parses the api definition, then for each endpoint creates a function that build a request and sends it.
 
 ## Nice result types

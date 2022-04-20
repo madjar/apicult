@@ -25,7 +25,9 @@ common common-options
     , exceptions        ^>=0.10
     , http-conduit      ^>=2.3
     , megaparsec        ^>=9.2
+    , names-th          ^>=0.3
     , relude            ^>=1.0
+    , template-haskell  ^>=2.17
 
   mixins:
     base hiding (Prelude),
@@ -59,6 +61,7 @@ library
     Apicult
     Apicult.Parse
     Apicult.Request
+    Apicult.TH
 
 executable apicult
   import:         common-options
@@ -72,11 +75,16 @@ test-suite apicult-test
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        Spec.hs
-  other-modules:  Test.Implementation
+  other-modules:
+    Test.HttpBin
+    Test.Implementation
+
   build-depends:
+    , aeson-optics
     , apicult
     , hspec             >=2.9.6
     , hspec-megaparsec
     , http-client
+    , optics
 
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N

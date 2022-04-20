@@ -1,9 +1,12 @@
+{-# LANGUAGE DeriveLift #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Apicult.Parse
-  ( Api (..),
+  ( parseApi,
+    Api (..),
     Variable (..),
     Endpoint (..),
     Result (..),
@@ -18,16 +21,22 @@ module Apicult.Parse
   )
 where
 
+import Control.Exception (throwIO)
 import Data.Char (isAlphaNum)
 import qualified Data.Text as T
+import GHC.Exception (errorCallWithCallStackException)
+import Language.Haskell.TH.Syntax (Lift)
 import Relude.Extra (groupBy, lookup)
 import Text.Megaparsec
   ( MonadParsec (eof, takeWhile1P, try),
     Parsec,
+    anySingle,
     anySingleBut,
     between,
+    errorBundlePretty,
     many,
     manyTill,
+    parse,
     some,
   )
 import Text.Megaparsec.Char (alphaNumChar, char, letterChar, newline, printChar, string)
@@ -40,9 +49,9 @@ data Api = Api
   { globals :: [Variable],
     endpoints :: [Endpoint]
   }
-  deriving stock (Show)
+  deriving stock (Show, Lift)
 
-data Variable = Variable {name :: Text, defaultValue :: Text} deriving stock (Show)
+data Variable = Variable {name :: Text, defaultValue :: Text} deriving stock (Show, Lift)
 
 data Endpoint = Endpoint
   { name :: Text,
@@ -50,13 +59,13 @@ data Endpoint = Endpoint
     request :: Request,
     result :: Result
   }
-  deriving stock (Show)
+  deriving stock (Show, Lift)
 
 data Result
   = JsonResult Void
   | Expectation [Text]
   | NoResult
-  deriving stock (Show)
+  deriving stock (Show, Lift)
 
 data Request = Request
   { method :: Method,
@@ -65,32 +74,39 @@ data Request = Request
     headers :: [Pair],
     body :: Body
   }
-  deriving stock (Show)
+  deriving stock (Show, Lift)
 
 data Method
   = Get
   | Post
-  deriving stock (Show)
+  deriving stock (Show, Lift)
 
 data Body = Body
   { bodyType :: BodyType,
     content :: [Pair]
   }
-  deriving stock (Show)
+  deriving stock (Show, Lift)
 
 data BodyType
   = Form
   | Json
-  deriving stock (Show)
+  deriving stock (Show, Lift)
 
-data Pair = Pair {key :: Text, value :: Interpolated} deriving stock (Show)
+data Pair = Pair {key :: Text, value :: Interpolated} deriving stock (Show, Lift)
 
-newtype Interpolated = Interpolated [InterpolatedPart] deriving stock (Show)
+newtype Interpolated = Interpolated [InterpolatedPart] deriving stock (Show, Lift)
 
 data InterpolatedPart
   = Literal Text
   | Var Text
-  deriving stock (Show)
+  deriving stock (Show, Lift)
+
+parseApi :: (HasCallStack, MonadIO m) => FilePath -> m Api
+parseApi f = do
+  content <- liftIO $ readFileText f
+  case parse apiParser f content of
+    Right r -> return r
+    Left e -> liftIO $ throwIO $ errorCallWithCallStackException (errorBundlePretty e) ?callStack
 
 apiParser :: Parser Api
 apiParser = do
