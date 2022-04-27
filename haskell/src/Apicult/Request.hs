@@ -18,14 +18,7 @@ makeRequestForEndpoint Endpoint {variables, request = request} args =
   makeRequest request lookupArgs
   where
     defaultArgs =
-      fromList
-        . mapMaybe
-          ( \Variable {name, defaultValue} ->
-              do
-                defV <- defaultValue
-                return (name, defV)
-          )
-        $ variables
+      variablesWithDefaults variables
     fullArgs = args <> defaultArgs
     lookupArgs v =
       maybe

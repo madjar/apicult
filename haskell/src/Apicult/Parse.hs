@@ -2,12 +2,14 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ImplicitParams #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Apicult.Parse
   ( parseApi,
     Api (..),
     Variable (..),
+    variablesWithDefaults,
     Endpoint (..),
     Result (..),
     Request (..),
@@ -52,6 +54,16 @@ data Api = Api
   deriving stock (Show, Lift)
 
 data Variable = Variable {name :: Text, defaultValue :: Maybe Text} deriving stock (Show, Lift)
+
+variablesWithDefaults :: [Variable] -> Map Text Text
+variablesWithDefaults =
+  fromList
+    . mapMaybe
+      ( \Variable {name, defaultValue} ->
+          do
+            defV <- defaultValue
+            return (name, defV)
+      )
 
 data Endpoint = Endpoint
   { name :: Text,

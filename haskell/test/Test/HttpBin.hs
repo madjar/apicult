@@ -27,6 +27,10 @@ httpBinSpec = describe "Httpbin" $ do
     r <- postForm "test_value"
     (r ^? key "form" % key "key" % _String) `shouldBe` Just "test_value"
 
+  it "code generation with default value" $ do
+    r <- exampleGetWithDefaultValue Nothing
+    (r ^? key "args" % key "qs" % _String) `shouldBe` Just "some_value"
+
   it "redirect is an exception" $ do
     redirect
       `shouldThrow` anyRedirect

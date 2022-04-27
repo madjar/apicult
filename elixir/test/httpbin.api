@@ -28,3 +28,14 @@
     },
     ...
 }
+
+# Example get with default value
+## Here we test the code generation for default values
+qs=some_value
+> http https://httpbin.org/get qs==$qs
+{
+    "args": {
+        "qs": "something"
+    },
+    ...
+}
