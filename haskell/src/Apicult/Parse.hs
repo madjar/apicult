@@ -215,4 +215,4 @@ interpolated =
     var = Var <$> (char '$' *> takeWhile1P (Just "alphanum or underscore") (\c -> isAlphaNum c || c == '_'))
 
 newlines :: Parser ()
-newlines = void $ some newline
+newlines = lexeme $ void $ some newline
