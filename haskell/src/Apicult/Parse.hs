@@ -39,7 +39,7 @@ import Text.Megaparsec
     parse,
     some,
   )
-import Text.Megaparsec.Char (alphaNumChar, char, letterChar, newline, printChar, string)
+import Text.Megaparsec.Char (alphaNumChar, char, newline, printChar, string)
 import qualified Text.Megaparsec.Char.Lexer as L
 import Prelude hiding (many, some)
 
@@ -51,7 +51,7 @@ data Api = Api
   }
   deriving stock (Show, Lift)
 
-data Variable = Variable {name :: Text, defaultValue :: Text} deriving stock (Show, Lift)
+data Variable = Variable {name :: Text, defaultValue :: Maybe Text} deriving stock (Show, Lift)
 
 data Endpoint = Endpoint
   { name :: Text,
@@ -131,9 +131,8 @@ variable :: Parser Variable
 variable =
   lexeme $
     do
-      name <- T.pack <$> some letterChar
-      void $ char '='
-      defaultValue <- T.pack <$> manyTill printChar newlines
+      name <- T.pack <$> some (alphaNumChar <|> char '_')
+      defaultValue <- Just <$> (char '=' *> (T.pack <$> manyTill printChar newlines)) <|> Nothing <$ newlines
       return Variable {..}
 
 endpoint :: Parser Endpoint

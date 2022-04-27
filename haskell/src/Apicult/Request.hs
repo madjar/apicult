@@ -17,7 +17,15 @@ makeRequestForEndpoint :: MonadThrow m => Endpoint -> Map Text Text -> m H.Reque
 makeRequestForEndpoint Endpoint {variables, request = request} args =
   makeRequest request lookupArgs
   where
-    defaultArgs = fromList . map (\Variable {name, defaultValue} -> (name, defaultValue)) $ variables
+    defaultArgs =
+      fromList
+        . mapMaybe
+          ( \Variable {name, defaultValue} ->
+              do
+                defV <- defaultValue
+                return (name, defV)
+          )
+        $ variables
     fullArgs = args <> defaultArgs
     lookupArgs v =
       maybe
