@@ -21,7 +21,7 @@ import Text.Megaparsec
 implementationSpec :: Spec
 implementationSpec = describe "implementation_tests.api" $ do
   it "parses the implementation test properly" $ do
-    implementationTests <- readFileText "../implementation_tests.api"
+    implementationTests <- decodeUtf8 <$> readFileBS "../implementation_tests.api"
     parse apiParser "" `shouldSucceedOn` implementationTests
 
   describe "implementation tests" $ do

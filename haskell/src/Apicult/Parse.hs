@@ -115,7 +115,7 @@ data InterpolatedPart
 
 parseApi :: (HasCallStack, MonadIO m) => FilePath -> m Api
 parseApi f = do
-  content <- liftIO $ readFileText f
+  content <- liftIO $ decodeUtf8 <$> readFileBS f
   case parse apiParser f content of
     Right r -> return r
     Left e -> liftIO $ throwIO $ errorCallWithCallStackException (errorBundlePretty e) ?callStack
