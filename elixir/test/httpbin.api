@@ -1,3 +1,4 @@
+url
 
 # Example get
 > http https://httpbin.org/get qs==$qs

@@ -15,11 +15,44 @@ import Prelude hiding (Type)
 
 makeApi :: FilePath -> Q [Dec]
 makeApi definitionFile = do
-  -- TODO use globals
-  Api {globals = _, endpoints} <- liftIO $ parseApi definitionFile
-  foldFor endpoints $ \e@Endpoint {name, variables, request, result = _} -> do
+  Api {globals, endpoints} <- liftIO $ parseApi definitionFile
+  let globalVariables :: [Text]
+      globalVariables = map (\Variable {name} -> name) globals
+
+  clientStuff <- memptyIfTrue (null globalVariables) $ do
+    typeClientName <- newName "Client" :: Q Name
+    conClientName <- newName "Client"
+    let recordField =
+          map
+            ( \var ->
+                varBangType
+                  (varName . toVarName . toString $ var)
+                  (bangType (return (Bang NoSourceUnpackedness SourceStrict)) [t|Text|])
+            )
+            globalVariables
+    clientDef <- dataD mempty typeClientName [] Nothing [recC conClientName recordField] []
+    -- TODO newClient that only takes non-defaults
+    newClientName <- newName "newClient"
+    let argsNames = map (varName . toVarName . toString) globalVariables
+    newClientFunction <-
+      funD
+        newClientName
+        [ clause
+            (map varP argsNames) -- global variables without default
+            ( normalB
+                ( recConE
+                    conClientName
+                    (map (\name -> return (name, VarE name)) argsNames) -- attributes of Client
+                )
+            )
+            []
+        ]
+    return [clientDef, newClientFunction]
+
+  functions <- foldFor endpoints $ \e@Endpoint {name, variables, request, result = _} -> do
     args <- executingStateT [] (makeRequest request (\key -> modify (key :) >> return ""))
 
+    -- TODO use client
     let functionName = varName . varCamelcaseName . toString $ name
         argsWithDefaults = variablesWithDefaults variables
         functionArgs = map (varP . varName . toVarName . toString) args
@@ -54,6 +87,8 @@ makeApi definitionFile = do
             []
         ]
     return [signature, function]
+
+  return (clientStuff <> functions)
 
 -- | This is `flip foldMap`, except template-haskell doesn't have `Monoid Q` in ghc 8.10
 foldFor :: [a] -> (a -> Q [Dec]) -> Q [Dec]
