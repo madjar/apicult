@@ -7,6 +7,7 @@
 
 ### Changed
 - The `use ApiCult, "file.api"` can now be called as `use ApiCult, file: "file.api"`. This allows for additional arguments.
+- Made the `client` function overridable, which should help when writing more complex auth workflows
 
 ## [0.2.0] - 2022-04-13
 

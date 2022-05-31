@@ -15,8 +15,6 @@ defmodule Apicult.Generator do
   def generate_api_bindings({:api, headers, endpoints}, opts \\ []) do
     config_app = Keyword.get(opts, :config_app)
 
-    # TODO make the functions `defoverridable`?
-
     client_keys =
       headers
       |> Enum.map(fn {:config, key, _type, _value} -> key end)
@@ -73,6 +71,7 @@ defmodule Apicult.Generator do
         config = Application.get_env(unquote(config_app), __MODULE__, [])
         struct!(Client, Keyword.merge(config, opts))
       end
+      defoverridable [client: 0, client: 1]
     end
   end
 
