@@ -91,9 +91,23 @@ If the result definition contains "...", then these struct have a `rest` field, 
 
 ### Global configuration
 
-If there are some global config values, a `Client` struct that holds the config. It is passed as first argument to all functions, though you can skip it if all config fields have default values.
+If there are some global config values, a `Client` struct that holds the config is generated. It is passed as first argument to all functions, though you can skip it if all config fields have default values.
 
-You can set default values for `Client` in the specification, or in the corresponding elixir config, eg `config Itch, api_key: System.get_env "ITCH_KEY"`
+You can set default values for `Client` in the specification.
+
+You can also make use of the elixir configuration system by passing a value to `config_app`. This will make the `client` function use the values in the config by default. 
+
+```
+defmodule Example do
+  use Apicult, file: "example.api", config_app: :example_app
+end
+```
+
+This will use the values defined in the config as such:
+```
+config :example:app, Example,
+  api_key: System.get_env "API_KEY"
+```
 
 ## Implementation tests
 

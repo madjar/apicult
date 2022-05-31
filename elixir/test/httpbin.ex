@@ -1,3 +1,3 @@
 defmodule Httpbin do
-  use Apicult, "test/httpbin.api"
+  use Apicult, file: "test/httpbin.api"
 end

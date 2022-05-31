@@ -11,27 +11,31 @@ defmodule Apicult.Generator do
   - A `client` function to create the struct is created. It takes keywords corresponding to the variable names, and uses the elixir config for the module as default ;
   - The `Client` struct is added as a first argument for each other methods (defaults to calling `client()`).
   """
-  @spec generate_api_bindings(Parser.api()) :: Macro.t()
-  def generate_api_bindings({:api, headers, endpoints}) do
+  @spec generate_api_bindings(Parser.api(), [config_app: atom()]) :: Macro.t()
+  def generate_api_bindings({:api, headers, endpoints}, opts \\ []) do
+    config_app = Keyword.get(opts, :config_app)
+
+    # TODO make the functions `defoverridable`?
+
     client_keys =
       headers
       |> Enum.map(fn {:config, key, _type, _value} -> key end)
 
     [
       quote do
-        unquote(generate_client(headers))
+        unquote(generate_client(headers, config_app))
       end
     ] ++
       (endpoints
        |> Enum.map(&generate_endpoint(&1, client_keys)))
   end
 
-  defp generate_client([]) do
+  defp generate_client([], _) do
     quote do
     end
   end
 
-  defp generate_client(headers) do
+  defp generate_client(headers, config_app) do
     struct_fields =
       headers
       |> Enum.map(fn {:config, key, _type, value} ->
@@ -66,7 +70,7 @@ defmodule Apicult.Generator do
       end
 
       def client(opts \\ []) do
-        config = Application.get_all_env(__MODULE__)
+        config = Application.get_env(unquote(config_app), __MODULE__, [])
         struct!(Client, Keyword.merge(config, opts))
       end
     end
