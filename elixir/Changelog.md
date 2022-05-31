@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- It's now possible to specify which app to use for the config, using `use ApiCult, "file.api", config_app: :some_app`.
+
+### Changed
+- The `use ApiCult, "file.api"` can now be called as `use ApiCult, file: "file.api"`. This allows for additional arguments.
+
 ## [0.2.0] - 2022-04-13
 
 ### Added
