@@ -15,19 +15,19 @@ extra-doc-files:
   CHANGELOG.md
   README.md
 
-tested-with:     GHC ==8.10.7 || ==9.0.2 || ==9.2.2
+tested-with:     GHC ==9.2.4 || ==9.4.2
 
 common common-options
   build-depends:
-    , aeson             ^>=2.0
-    , base              >=4.14.3.0 && <4.17
+    , aeson             ^>=2.1
+    , base              >=4.16.0.0 && <4.18
     , case-insensitive  ^>=1.2
     , exceptions        ^>=0.10
     , http-conduit      ^>=2.3
     , megaparsec        ^>=9.2
     , names-th          ^>=0.3
     , relude            >=1.0      && <1.2
-    , template-haskell  >=2.16     && <2.19
+    , template-haskell  >=2.18     && <2.20
 
   mixins:
     base hiding (Prelude),
@@ -51,7 +51,7 @@ common common-options
   if impl(ghc >=8.10)
     ghc-options: -Wunused-packages
 
-  default-language:   Haskell2010
+  default-language:   GHC2021
   default-extensions: OverloadedStrings
 
 library
