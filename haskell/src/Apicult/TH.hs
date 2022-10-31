@@ -94,8 +94,9 @@ makeApi definitionFile = do
 foldFor :: [a] -> (a -> Q [Dec]) -> Q [Dec]
 foldFor l f = concat <$> forM l f
 
+
+-- | Given a list of argument types and a return type, returns the type of a function
 functionType :: [Q Type] -> Q Type -> Q Type
 functionType args ret = do
-  args' <- sequence args
-  ret' <- ret
-  return (foldr (AppT . AppT ArrowT) ret' args')
+  foldr funcT ret args
+  where funcT a = appT (appT arrowT a)
