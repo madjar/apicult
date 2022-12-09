@@ -1,0 +1,6 @@
+test:
+	cabal test --test-show-details=direct --test-option=--format=checks
+
+show-splice:
+	cabal build --enable-tests --ghc-options="-ddump-splices -ddump-to-file -dth-dec-file"
+	bat --line-range :50 dist-newstyle/build/x86_64-linux/ghc-9.2.5/apicult-0.0.0.0/t/apicult-test/build/apicult-test/apicult-test-tmp/test/Test/HttpBin.th.hs

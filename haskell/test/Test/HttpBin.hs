@@ -16,23 +16,28 @@ makeApi "test/httpbin.api"
 httpBinSpec :: Spec
 httpBinSpec = describe "Httpbin" $ do
   it "get works" $ do
-    r <- exampleGet "test_value"
+    let client = newClient "ignored"
+    r <- exampleGet client "test_value"
     (r ^? key "args" % key "qs" % _String) `shouldBe` Just "test_value"
 
   it "post with json works" $ do
-    r <- postJson "test_value"
+    let client = newClient "ignored"
+    r <- postJson client "test_value"
     (r ^? key "json" % key "key" % _String) `shouldBe` Just "test_value"
 
   it "post with form works" $ do
-    r <- postForm "test_value"
+    let client = newClient "ignored"
+    r <- postForm client "test_value"
     (r ^? key "form" % key "key" % _String) `shouldBe` Just "test_value"
 
   it "code generation with default value" $ do
-    r <- exampleGetWithDefaultValue Nothing
+    let client = newClient "ignored"
+    r <- exampleGetWithDefaultValue client Nothing
     (r ^? key "args" % key "qs" % _String) `shouldBe` Just "some_value"
 
   it "redirect is an exception" $ do
-    redirect
+    let client = newClient "ignored"
+    redirect client
       `shouldThrow` anyRedirect
 
 anyRedirect :: Selector HttpException
@@ -42,5 +47,5 @@ anyRedirect
       (StatusCodeException response _)
     )
     | getResponseStatusCode response == 300 =
-      True
+        True
 anyRedirect _ = False
