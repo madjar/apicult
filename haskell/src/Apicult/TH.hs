@@ -48,7 +48,7 @@ makeApi' Api {globals, endpoints} isIO = do
     signature <- sigD functionName type_
     let withDecDoc' = if isIO then \_ dec -> dec else withDecDoc
     function <-
-      withDecDoc' (Text.unpack doc) $
+      withDecDoc' (Text.unpack ("@\n" <> doc <> "@")) $
         funD
           functionName
           [ clause
