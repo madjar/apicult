@@ -17,6 +17,7 @@ endpointWithVar :: Endpoint
 endpointWithVar =
   Endpoint
     { name = "get",
+      doc = "",
       variables = [],
       request = Request {method = Get, url = Interpolated [Literal "http://example.com/", Var "var"], querystring = [], headers = [], body = Body {bodyType = Json, content = []}},
       result = NoResult
@@ -24,7 +25,7 @@ endpointWithVar =
 
 runIt :: Api -> IO String
 runIt api = do
-  decs <- runQ $ makeApi' api
+  decs <- runQ $ makeApi' api True
   return $ pprint decs
 
 thSpec :: Spec

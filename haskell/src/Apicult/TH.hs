@@ -8,6 +8,7 @@ import Apicult.Parse
 import Apicult.Request
 import Data.Aeson qualified as Aeson
 import Data.List (partition)
+import Data.Text qualified as Text
 import Language.Haskell.TH
 import Language.Haskell.TH.Name.CamelCase (VarName (varName), toVarName, varCamelcaseName)
 import Network.HTTP.Simple qualified as H
@@ -17,16 +18,16 @@ import Prelude hiding (Type)
 makeApi :: FilePath -> Q [Dec]
 makeApi definitionFile = do
   api <- liftIO $ parseApi definitionFile
-  makeApi' api
+  makeApi' api False
 
-makeApi' :: Api -> Q [Dec]
-makeApi' Api {globals, endpoints} = do
+makeApi' :: Api -> Bool -> Q [Dec]
+makeApi' Api {globals, endpoints} isIO = do
   let globalVariables :: [Text] -- XXX duplicated
       globalVariables = map (\Variable {name} -> name) globals
   (clientDecs, maybeClientType) <- clientQ globals
   let maybeClientCon = maybeClientType
 
-  functions <- foldFor endpoints $ \e@Endpoint {name, variables, request, result = _} -> do
+  functions <- foldFor endpoints $ \e@Endpoint {name, variables, request, result = _, doc} -> do
     allArgs <- executingStateT [] (makeRequest request (\key -> modify (key :) >> return ""))
 
     -- First, separate args that are in Client, and args specific to this function
@@ -45,21 +46,23 @@ makeApi' Api {globals, endpoints} = do
             ++ map (\arg -> if member arg argsWithDefaults then [t|Maybe Text|] else [t|Text|]) args
         type_ = functionType argTypes [t|IO Aeson.Value|]
     signature <- sigD functionName type_
+    let withDecDoc' = if isIO then \_ dec -> dec else withDecDoc
     function <-
-      funD
-        functionName
-        [ clause
-            functionArgs
-            ( normalB
-                [|
-                  do
-                    req <- $(requestForEndpointQ e)
-                    resp <- H.httpJSON req
-                    return (H.getResponseBody resp) :: IO Aeson.Value
-                  |]
-            )
-            []
-        ]
+      withDecDoc' (Text.unpack doc) $
+        funD
+          functionName
+          [ clause
+              functionArgs
+              ( normalB
+                  [|
+                    do
+                      req <- $(requestForEndpointQ e)
+                      resp <- H.httpJSON req
+                      return (H.getResponseBody resp) :: IO Aeson.Value
+                    |]
+              )
+              []
+          ]
     return [signature, function]
 
   return (clientDecs <> functions)

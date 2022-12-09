@@ -25,7 +25,7 @@ where
 
 import Control.Exception (throwIO)
 import Data.Char (isAlphaNum)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import GHC.Exception (errorCallWithCallStackException)
 import Language.Haskell.TH.Syntax (Lift)
 import Relude.Extra (groupBy, lookup)
@@ -38,11 +38,12 @@ import Text.Megaparsec
     errorBundlePretty,
     many,
     manyTill,
+    match,
     parse,
     some,
   )
 import Text.Megaparsec.Char (alphaNumChar, char, newline, printChar, string)
-import qualified Text.Megaparsec.Char.Lexer as L
+import Text.Megaparsec.Char.Lexer qualified as L
 import Prelude hiding (many, some)
 
 type Parser = Parsec Void Text
@@ -67,6 +68,7 @@ variablesWithDefaults =
 
 data Endpoint = Endpoint
   { name :: Text,
+    doc :: Text,
     variables :: [Variable],
     request :: Request,
     result :: Result
@@ -149,14 +151,15 @@ variable =
 
 endpoint :: Parser Endpoint
 endpoint =
-  lexeme $
-    do
+  lexeme $ do
+    (doc, (name, variables, request, result)) <- match $ do
       void $ lexeme $ string "#"
       name <- T.pack <$> manyTill printChar newlines
       variables <- many variable
       request <- requestP
       result <- resultP
-      return Endpoint {..}
+      return (name, variables, request, result)
+    return Endpoint {..}
 
 requestP :: Parser Request
 requestP =

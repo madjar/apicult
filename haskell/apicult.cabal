@@ -78,6 +78,7 @@ test-suite apicult-test
   other-modules:
     Test.HttpBin
     Test.Implementation
+    Test.Parser
     Test.TH
 
   build-depends:
